@@ -1,0 +1,13 @@
+name: kamailio-docker
+summary: <Fill in summary here>
+maintainer: root <root@dnstest-VirtualBox>
+description: |
+  <Multi-line description here>
+tags:
+  # Replace "misc" with one or more whitelisted tags from this list:
+  # https://jujucharms.com/docs/stable/authors-charm-metadata
+  - misc
+subordinate: false
+requires:
+  db-admin:
+    interface: mysql-root

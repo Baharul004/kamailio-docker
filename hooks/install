@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+
+#import setup
+#setup.pre_install()
+import os
+import sys
+sys.path.insert(0, os.path.join(os.environ['CHARM_DIR'], 'lib'))
+from charmhelpers.core import hookenv
+from subprocess import check_call
+
+def install():
+    hookenv.log('Installing docker')
+    os.system('apt-get update')
+#    os.system('apt-get install -y docker.io')
+#    os.system('reboot')
+#    exit()
+#    os.system('init 6')
+    charm_path=os.getenv('CHARM_DIR', '')
+    install_script_path = os.path.join(charm_path, 'dockerr.sh')
+    check_call([install_script_path])
+
+#    charm_path=sys.path.insert(0, os.path.join(os.environ['CHARM_DIR']))
+#    charm_path = os.path(os.environ['/home/docker/charms/precise/docker'])
+#    charm_path=sys.path.insert(0,os.environ['CHARM_DIR'])
+#    charm_path=os.environ['CHARM_DIR']
+#    install_script_path = charm_path/'docker.sh'
+#    install_script_path='/home/docker/charms/precise/docker/docker.sh'
+#    check_call([install_script_path])
+    hookenv.log('Docker INSTALLED')
+#    os.system('apt-get install -y apt-transport-https ca-certificates curl software-properties-common')
+#    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add –
+#    apt-key fingerprint 0EBFCD88
+#    add-apt-repository “deb [arch=amd64] https://download.docker.com/linux/ubuntu bionic stable”
+#    os.system('apt-get update')
+#    os.system('apt-get install -y docker-ce')
+    # add steps for installing dependencies and packages here
+    # e.g.: from charmhelpers import fetch
+    #       fetch.apt_install(fetch.filter_installed_packages(['nginx']))
+def environment():
+    os.system('systemctl stop docker')
+    overlay=open('/etc/docker/daemon.json', 'w')
+    first='{'
+    message='     "storage-driver": "overlay"'
+    last='}'
+    os.chmod('/etc/docker/daemon.json', 0o0777)
+    file=open('/etc/docker/daemon.json','r')
+    if message not in file:
+      file1=open('/etc/docker/daemon.json','r')
+      file_contents=file1.readlines()
+      file1.close()
+      file_contents.insert(1, first)
+      file_contents.insert(2, '\n')
+      file_contents.insert(3, message)
+      file_contents.insert(4, '\n')
+      file_contents.insert(5, last)
+      file1=open('/etc/docker/daemon.json','w')
+      file_contents="".join(file_contents)
+      file1.write(file_contents)
+      hookenv.log('environment file is added', 'INFO')
+    else:
+      hookenv.log('environment file is NOT added', 'INFO')
+    os.system('systemctl start docker')
+
+def install_kamailio():
+    hookenv.log('kamailio docker')
+#    hookenv.status_set('maintenance', 'Pulling kamailio image')
+#    check_call(['docker', 'pull', 'kamailio/kamailio:5.2.3-bionic'])
+#    check_call(['docker', 'pull', 'kamailio/kamailio:5.2.3-bionic'])
+#    check_call(['docker', 'pull', 'nginx'])
+    charm_path=os.getenv('CHARM_DIR', '')
+    install_script_path = os.path.join(charm_path, 'Dockerfile')
+    run_command = ['docker', 'build','--tag', 'kamailio', '--file', 'Dockerfile', '.']
+    check_call(run_command)
+
+    hookenv.status_set('active', 'kamailio image created')
+
+def create_volume():
+  run_command = ['docker', 'volume', 'create', 'kamailio']
+  check_call(run_command)
+  hookenv.status_set('active', 'kamailio volume created')
+
+def run_container():
+#  os.chmod('/var/lib/docker/volumes/kamailio/_data/kamailio.cfg', 0o0777)
+#  os.chmod('/var/lib/docker/volumes/kamailio/_data/kamctlrc', 0o0777)
+  run_command = [
+    'docker', 'run', '--detach', '--net', 'host', '--volume', 'kamailio:/etc/kamailio',  '--name', 'kamailio', 'kamailio' ]
+  check_call(run_command)
+  hookenv.log('Kamailio Image created from Dockerfile', 'INFO')
+  os.chmod('/var/lib/docker/volumes/kamailio/_data/kamailio.cfg', 0o0777)
+  os.chmod('/var/lib/docker/volumes/kamailio/_data/kamctlrc', 0o0777)
+  hookenv.log('Kamailio Docker Contaienr created from Image', 'INFO')
+  hookenv.status_set('blocked', 'Waiting for Database')
+
+
+#  run_command = ['docker', 'stop', 'kamailio' ]
+#  check_call(run_command)
+#  hookenv.log('KAMAILIO STOP', 'INFO')
+#  os.system('reboot')
+#  run_commandd = ['docker', 'start', 'kamailio' ]
+#  check_call(run_commandd)
+#  hookenv.log('KAMAILIO START', 'INFO')
+#  run_commandd = ['docker', 'exec', '--interactive', 'kamailio', 'bash' ]
+#  check_call(run_commandd)
+#  hookenv.log('Hi from inside', 'INFO')
+
+if __name__ == "__main__":
+    install()
+    environment()
+    install_kamailio()
+    create_volume()
+    run_container()
+

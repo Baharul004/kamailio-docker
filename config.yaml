@@ -1,0 +1,9 @@
+options:
+  host:
+    type: string
+    default:
+    description: "A short description of the configuration option"
+  url:
+    type: string
+    default:
+    description: "A short description of the configuration option"
