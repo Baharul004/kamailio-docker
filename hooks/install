@@ -69,11 +69,12 @@ def install_kamailio():
 #    check_call(['docker', 'pull', 'nginx'])
     charm_path=os.getenv('CHARM_DIR', '')
     install_script_path = os.path.join(charm_path, 'Dockerfile')
-    run_command = ['docker', 'build','--tag', 'kamailio', '--file', 'Dockerfile', '.']
+    run_command = ['docker', 'build','--tag', 'kamailio', '--file', 'docker', '.']
     check_call(run_command)
 
     hookenv.status_set('active', 'kamailio image created')
-
+def uninstall():
+ os.system('apt-get remove kamailio -y')
 def create_volume():
   run_command = ['docker', 'volume', 'create', 'kamailio']
   check_call(run_command)
@@ -108,5 +109,6 @@ if __name__ == "__main__":
     environment()
     install_kamailio()
     create_volume()
+    uninstall()
     run_container()
 
